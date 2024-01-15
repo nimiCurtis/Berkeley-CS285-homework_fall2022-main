@@ -86,9 +86,23 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
         return dist.sample().cpu().numpy()
 
     # update/train this policy
-    def update(self, observations, actions, **kwargs):
-        raise NotImplementedError
+    # def update(self, observations, actions, **kwargs):
+    #     raise NotImplementedError
+    def update(
+            self, observations, actions,
+            adv_n=None, acs_labels_na=None, qvals=None
+    ):
+        # TODO: update the policy and return the loss
+        dist = self(observations)
+        loss = -dist.log_prob(actions).sum()
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
 
+        return {
+            # You can add extra logging information here, but keep this line
+            'Training Loss': ptu.to_numpy(loss),
+        }
     # This function defines the forward pass of the network.
     # You can return anything you want, but you should be able to differentiate
     # through it. For example, you can return a torch.FloatTensor. You can also
